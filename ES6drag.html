@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+   html , body {
+      height: 100%;
+    }
+    .box {
+      width: 300px;
+      height: 300px;
+      background-color: red;
+      position: absolute;
+      text-align: center;
+      user-select: none;
+      cursor: move;
+    }
+
+    .two {
+      right: 0;
+      width: 100px;
+      height: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box one">one</div>
+  <div class="box two">two</div>
+  <script>
+    class Drag {
+      constructor(selector) {
+        this.box = document.querySelector(selector);
+        this.moveX = 0;  //移动的距离
+        this.moveY = 0;
+        this.disX = 0;  //鼠标的位置
+        this.disY = 0;
+        this.init();
+      }
+      init() {
+        // console.log('init 方法执行');
+        this.box.onmousedown = function (e) {
+          // console.log('mousedown方法执行');
+          //在事件中this指向事件源   所以要矫正this
+          this.disX = e.offsetX;
+          this.disY = e.offsetY;
+          document.onmousemove = this.moveHandle.bind(this); //同样要矫正this
+          document.onmouseup = this.mouseUpHandle.bind(this);
+
+        }.bind(this); //在函数的外围this的指向时当前的构造函数
+      }
+      moveHandle(e) {
+        this.moveX = e.clientX - this.disX;
+        this.moveY = e.clientY - this.disY;
+        this.box.style.left = this.moveX + 'px';
+        this.box.style.top = this.moveY + 'px';
+      }
+      mouseUpHandle() {
+        document.onmousemove = null;
+      }
+    }
+    new Drag('.one');
+    //限定范围的拖拽 使用子类
+    class LimitDrag extends Drag {
+      constructor(selector , limitEle) {
+        super(selector);
+        this.limitEle = document.querySelector(limitEle);
+      }
+      moveHandle(e) {
+        super.moveHandle(e);
+        const limitContainerWith = this.limitEle.offsetWidth - this.box.offsetWidth;
+        const limitContainerHeight = this.limitEle.offsetHeight - this.box.offsetHeight;
+        console.log(limitContainerheight);
+        if(this.box.offsetLeft < 0) {
+          this.box.style.left = 0 + 'px';
+        }
+        if(this.box.offsetTop < 0) {
+          this.box.style.top = 0 + 'px';
+        }
+        if(this.box.offsetLeft > limitContainerWith) {
+          this.box.style.left = limitContainerWith + 'px';
+        }
+        if(this.box.offsetHeight > limitContainerHeight) {
+          this.box.style.top = limitContainerHeight + 'px';
+        }
+        
+      }
+    }
+    new LimitDrag('.two' , 'body');
+  </script>
+</body>
+
+</html>
